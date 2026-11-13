@@ -12,7 +12,7 @@
 
     <artifactId>socialbox-common</artifactId>
     <name>Socialbox Common</name>
-    <description>Common Code for the Socialbox client and server. iuncluding cryptography, encodings and protocol objects</description>
+    <description>Common Code for the Socialbox client and server. including cryptography, encodings and protocol objects</description>
 
     <dependencies>
         <dependency>
