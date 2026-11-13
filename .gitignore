@@ -38,3 +38,6 @@ build/
 ### Mac OS ###
 .DS_Store
 /.idea/vcs.xml
+
+### Prototype -- Will not be left in the final build ###
+socialbox-gui
