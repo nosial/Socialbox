@@ -6,12 +6,133 @@
 
     <groupId>net.nosial</groupId>
     <artifactId>socialbox</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>Socialbox</name>
+    <description>Socialbox Java implementation of the Socialbox Protocol Specification</description>
+
+    <modules>
+        <module>socialbox-common</module>
+        <module>socialbox-client</module>
+        <module>socialbox-server</module>
+        <module>socialbox-gui</module>
+    </modules>
 
     <properties>
-        <maven.compiler.source>26</maven.compiler.source>
-        <maven.compiler.target>26</maven.compiler.target>
+        <maven.compiler.release>26</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jackson.version>2.23.0</jackson.version>
+        <msgpack.version>0.9.12</msgpack.version>
+        <netty.version>4.2.20.Final</netty.version>
+        <mariadb.version>4.0.0</mariadb.version>
+        <hikari.version>7.1.0</hikari.version>
+        <caffeine.version>3.3.1</caffeine.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
+        <junit.version>6.1.3</junit.version>
+        <compiler.plugin.version>3.16.0</compiler.plugin.version>
+        <surefire.plugin.version>3.6.1</surefire.plugin.version>
+        <shade.plugin.version>3.6.2</shade.plugin.version>
+        <jar.plugin.version>3.5.1</jar.plugin.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.nosial</groupId>
+                <artifactId>socialbox-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.nosial</groupId>
+                <artifactId>socialbox-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.msgpack</groupId>
+                <artifactId>jackson-dataformat-msgpack</artifactId>
+                <version>${msgpack.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mariadb.jdbc</groupId>
+                <artifactId>mariadb-java-client</artifactId>
+                <version>${mariadb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>${hikari.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${compiler.plugin.version}</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <parameters>true</parameters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${surefire.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${shade.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${jar.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>integration</id>
+            <modules>
+                <module>socialbox-tests</module>
+            </modules>
+        </profile>
+    </profiles>
 
 </project>

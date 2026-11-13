@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.nosial</groupId>
+        <artifactId>socialbox</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>socialbox-tests</artifactId>
+    <name>Socialbox Integration Tests</name>
+    <description>Cross-server integration tests against the docker test environment (coffee.com and teapot.com)</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.nosial</groupId>
+            <artifactId>socialbox-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- DNS mocks pointing at the ports docker-compose.yml publishes on the host -->
+                        <socialbox.dns.mocks>${project.basedir}/../docker/test/dns-mocks.txt</socialbox.dns.mocks>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
