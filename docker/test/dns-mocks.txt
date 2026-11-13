@@ -1,0 +1,10 @@
+# DNS mocks for clients on the host (integration tests, socialbox-gui --dns-mock-file).
+# One "<domain> <TXT record>" per line. The hosts are the ports docker-compose.yml publishes on the host; the servers
+# themselves use the same records with their docker hostnames (see coffee/socialbox.json, teapot/socialbox.json). Only
+# the hosts differ: algorithms and host keys must match what the servers sign, or clients refuse them.
+
+coffee.com v=sb1;host=127.0.0.1:8086;sign=ed25519;kex=x25519;kdf=hkdf-sha256;aead=chacha20-poly1305;hash=sha256;mac=hmac-sha256;pbkdf=pbkdf2-sha256;keys=ed25519:5iW_ziceXyeBUDxKussnkutle7Zdmm3gZ9tyoVgHtOQ/0
+teapot.com v=sb1;host=127.0.0.1:8087;sign=ed25519;kex=x25519;kdf=hkdf-sha256;aead=chacha20-poly1305;hash=sha256;mac=hmac-sha256;pbkdf=pbkdf2-sha256;keys=ed25519:hL5nQd3gFMBKG0uBkbU9U8f-OOWrNO_CM74eXYxvJGY/0
+
+# mallory.com points at coffee's server but publishes another host key; clients must refuse it (DNS_MISMATCH)
+mallory.com v=sb1;host=127.0.0.1:8086;sign=ed25519;kex=x25519;kdf=hkdf-sha256;aead=chacha20-poly1305;hash=sha256;mac=hmac-sha256;pbkdf=pbkdf2-sha256;keys=ed25519:I-5X89HkiW6cWQppBhsx_jR9nDWgO719n4FQX4J7EQQ/0

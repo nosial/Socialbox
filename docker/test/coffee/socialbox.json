@@ -1,0 +1,25 @@
+{
+    "instance": {
+        "domain": "coffee.com",
+        "name": "Coffee"
+    },
+    "transport": {
+        "public_host": "coffee-socialbox"
+    },
+    "cryptography": {
+        "host_private_key": "ed25519:QsA3RwZ18t9xL2QfPXoCasax60PAO2oUGvp0nr-WyMw"
+    },
+    "database": {
+        "host": "coffee-mariadb",
+        "username": "socialbox",
+        "password": "socialbox",
+        "name": "socialbox"
+    },
+    "dns": {
+        "mocks": {
+            "coffee.com": "v=sb1;host=coffee-socialbox:7700;sign=ed25519;kex=x25519;kdf=hkdf-sha256;aead=chacha20-poly1305;hash=sha256;mac=hmac-sha256;pbkdf=pbkdf2-sha256;keys=ed25519:5iW_ziceXyeBUDxKussnkutle7Zdmm3gZ9tyoVgHtOQ/0",
+            "teapot.com": "v=sb1;host=teapot-socialbox:7700;sign=ed25519;kex=x25519;kdf=hkdf-sha256;aead=chacha20-poly1305;hash=sha256;mac=hmac-sha256;pbkdf=pbkdf2-sha256;keys=ed25519:hL5nQd3gFMBKG0uBkbU9U8f-OOWrNO_CM74eXYxvJGY/0",
+            "mallory.com": "v=sb1;host=coffee-socialbox:7700;sign=ed25519;kex=x25519;kdf=hkdf-sha256;aead=chacha20-poly1305;hash=sha256;mac=hmac-sha256;pbkdf=pbkdf2-sha256;keys=ed25519:I-5X89HkiW6cWQppBhsx_jR9nDWgO719n4FQX4J7EQQ/0"
+        }
+    }
+}
