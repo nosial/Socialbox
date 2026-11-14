@@ -73,9 +73,9 @@ public record TypedKey(String algorithm, byte[] raw)
      * @param algorithmName The algorithm name to compare.
      * @return True if the algorithm matches.
      */
-    public boolean isAlgorithm(String algorithmName)
+    public boolean isAlgorithm(Algorithms algorithmName)
     {
-        return this.algorithm.equals(algorithmName);
+        return this.algorithm.equals(algorithmName.toString());
     }
 
     /**
