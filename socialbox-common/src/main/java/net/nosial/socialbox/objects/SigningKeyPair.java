@@ -54,7 +54,7 @@ public record SigningKeyPair(TypedKey publicKey, byte[] seed)
      */
     public String toPrivateString()
     {
-        return this.publicKey.algorithm() + ":" + Base64Url.encode(this.seed);
+        return this.publicKey.algorithm().getAlgorithm() + ":" + Base64Url.encode(this.seed);
     }
 
     /**
