@@ -7,37 +7,37 @@ public enum CryptographyRole
     /**
      * Signatures: host keys, account keys, device keys.
      */
-    SIGN("sign", List.of(String.valueOf(Algorithms.ED25519))),
+    SIGN("sign", List.of(Algorithms.ED25519.getAlgorithm())),
 
     /**
      * Key exchange: handshake ephemeral keys, device encryption keys, channel keys.
      */
-    KEX("kex", List.of(String.valueOf(Algorithms.X25519))),
+    KEX("kex", List.of(Algorithms.X25519.getAlgorithm())),
 
     /**
      * Key derivation.
      */
-    KDF("kdf", List.of(String.valueOf(Algorithms.HKDF_SHA256))),
+    KDF("kdf", List.of(Algorithms.HKDF_SHA256.getAlgorithm())),
 
     /**
      * Authenticated encryption.
      */
-    AEAD("aead", List.of(String.valueOf(Algorithms.CHACHA20_POLY1305))),
+    AEAD("aead", List.of(Algorithms.CHACHA20_POLY1305.getAlgorithm())),
 
     /**
      * Hashing.
      */
-    HASH("hash", List.of(String.valueOf(Algorithms.SHA256))),
+    HASH("hash", List.of(Algorithms.SHA256.getAlgorithm())),
 
     /**
      * Message authentication.
      */
-    MAC("mac", List.of(String.valueOf(Algorithms.HMAC_SHA256))),
+    MAC("mac", List.of(Algorithms.HMAC_SHA256.getAlgorithm())),
 
     /**
      * Password based key derivation.
      */
-    PBKDF("pbkdf", List.of(String.valueOf(Algorithms.PBKDF2_SHA256)));
+    PBKDF("pbkdf", List.of(Algorithms.PBKDF2_SHA256.getAlgorithm()));
 
     private final String name;
     private final List<String> supported;
