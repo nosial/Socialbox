@@ -54,7 +54,7 @@ public record KeyExchangeKeyPair(TypedKey publicKey, byte[] privateKey)
      */
     public String toPrivateString()
     {
-        return this.publicKey.algorithm() + ":" + Base64Url.encode(this.privateKey);
+        return this.publicKey.algorithm().getAlgorithm() + ":" + Base64Url.encode(this.privateKey);
     }
 
     /**
