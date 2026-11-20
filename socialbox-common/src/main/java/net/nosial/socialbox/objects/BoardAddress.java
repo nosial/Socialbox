@@ -78,6 +78,24 @@ public record BoardAddress(String name, String domain) implements AddressInterfa
     }
 
     /**
+     * Returns the account a board of this name would belong to as a personal board: the account on the board's
+     * domain whose username is the board's name, ignoring case. Only that account can register the board.
+     *
+     * @return The account's address, or null if the name is not a valid username.
+     */
+    public PeerAddress personalOwner()
+    {
+        try
+        {
+            return new PeerAddress(this.nameKey(), this.domain);
+        }
+        catch(SocialboxException e)
+        {
+            return null;
+        }
+    }
+
+    /**
      * Returns whether two addresses name the same board, ignoring the name's case.
      *
      * @param other The other address.
