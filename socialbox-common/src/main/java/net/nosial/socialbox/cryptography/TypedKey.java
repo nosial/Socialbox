@@ -59,12 +59,32 @@ public record TypedKey(Algorithms algorithm, byte[] raw)
 
         try
         {
-            return new TypedKey(Algorithms.valueOf(value.substring(0, separator)), Base64Url.decode(value.substring(separator + 1)));
+            return new TypedKey(algorithmOf(value.substring(0, separator)), Base64Url.decode(value.substring(separator + 1)));
         }
         catch(IllegalArgumentException e)
         {
             throw new CryptographyException("Typed key is not valid base64url", e);
         }
+    }
+
+    /**
+     * Returns the algorithm of a wire name, e.g. "ed25519".
+     *
+     * @param name The algorithm name.
+     * @return The algorithm.
+     * @throws CryptographyException If no algorithm has the name.
+     */
+    private static Algorithms algorithmOf(String name)
+    {
+        for(Algorithms algorithm : Algorithms.values())
+        {
+            if(algorithm.getAlgorithm().equals(name))
+            {
+                return algorithm;
+            }
+        }
+
+        throw new CryptographyException(String.format("Unsupported key algorithm '%s'", name));
     }
 
     /**
@@ -75,7 +95,7 @@ public record TypedKey(Algorithms algorithm, byte[] raw)
      */
     public boolean isAlgorithm(Algorithms algorithmName)
     {
-        return this.algorithm.equals(algorithmName.toString());
+        return this.algorithm == algorithmName;
     }
 
     /**
@@ -98,7 +118,7 @@ public record TypedKey(Algorithms algorithm, byte[] raw)
     @Override
     public String toString()
     {
-        return this.algorithm + ":" + Base64Url.encode(this.raw);
+        return this.algorithm.getAlgorithm() + ":" + Base64Url.encode(this.raw);
     }
 
     /**
