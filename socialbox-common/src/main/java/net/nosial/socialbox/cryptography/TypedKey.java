@@ -8,7 +8,7 @@ import net.nosial.socialbox.exceptions.CryptographyException;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-public record TypedKey(String algorithm, byte[] raw)
+public record TypedKey(Algorithms algorithm, byte[] raw)
 {
     /**
      * Validates the key on construction.
@@ -59,7 +59,7 @@ public record TypedKey(String algorithm, byte[] raw)
 
         try
         {
-            return new TypedKey(value.substring(0, separator), Base64Url.decode(value.substring(separator + 1)));
+            return new TypedKey(Algorithms.valueOf(value.substring(0, separator)), Base64Url.decode(value.substring(separator + 1)));
         }
         catch(IllegalArgumentException e)
         {
@@ -112,7 +112,7 @@ public record TypedKey(String algorithm, byte[] raw)
             return true;
         }
 
-        if(!(other instanceof TypedKey(String otherAlgorithm, byte[] otherRaw)))
+        if(!(other instanceof TypedKey(Algorithms otherAlgorithm, byte[] otherRaw)))
         {
             return false;
         }
