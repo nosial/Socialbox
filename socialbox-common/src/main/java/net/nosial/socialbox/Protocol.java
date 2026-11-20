@@ -7,7 +7,7 @@ public final class Protocol
     /**
      * The protocol version carried in DNS records, hellos and envelope headers.
      */
-    public static final int VERSION = 1;
+    public static final String VERSION = "1.0";
 
     /**
      * The value of the "v" parameter of a Socialbox DNS TXT record.
