@@ -1,6 +1,8 @@
 package net.nosial.socialbox.enums;
 
-public enum Encoding
+import net.nosial.socialbox.interfaces.NamedEnumInterface;
+
+public enum Encoding implements NamedEnumInterface
 {
     JSON,
     MSGPACK
