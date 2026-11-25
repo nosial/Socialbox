@@ -35,43 +35,33 @@ public final class Protocol
     public static final String WEBSOCKET_SUBPROTOCOL = "socialbox.sb";
 
     /**
-     * The default port a Socialbox server listens on for all transports.
+     * The port of servers that use TLS when their DNS record names none: the standard HTTPS port, so an instance is
+     * reached like any website, e.g. {@code https://socialbox.example.com/}.
      */
-    public static final int DEFAULT_PORT = 7700;
+    public static final int HTTPS_PORT = 443;
 
     /**
-     * The maximum size of a single frame, HTTP body or envelope in bytes.
+     * The port of servers without TLS when their DNS record names none: the standard HTTP port.
      */
-    public static final int MAX_FRAME_SIZE = 1024 * 1024;
+    public static final int HTTP_PORT = 80;
 
     /**
-     * The maximum number of requests in a single RPC batch.
+     * The content type of JSON bodies on the HTTP transport.
      */
-    public static final int MAX_BATCH_SIZE = 32;
+    public static final String CONTENT_TYPE_JSON = "application/json";
 
     /**
-     * The maximum accepted clock skew between peers in milliseconds.
+     * The content type of a sealed envelope payload on the HTTP transport, whose header travels as
+     * {@code Socialbox-*} HTTP headers.
      */
-    public static final long MAX_CLOCK_SKEW = 60_000L;
-
-    /**
-     * The maximum lifetime of a standing statement in milliseconds.
-     */
-    public static final long MAX_STANDING_LIFETIME = 600_000L;
-
-    /**
-     * The time a pending handshake may take before it is discarded, in milliseconds.
-     */
-    public static final long HANDSHAKE_TIMEOUT = 30_000L;
-
-    /**
-     * The size of the replay window of envelope sequence numbers.
-     */
-    public static final int REPLAY_WINDOW_SIZE = 1024;
+    public static final String CONTENT_TYPE_SEALED = "application/vnd.socialbox.sealed";
 
     /**
      * The username every server uses when it acts as a client of another server.
      */
     public static final String HOST_USERNAME = "host";
 
+    private Protocol()
+    {
+    }
 }
