@@ -1,7 +1,7 @@
 package net.nosial.socialbox.exceptions;
 
-import net.nosial.socialbox.cryptography.TypedKey;
-import net.nosial.socialbox.objects.PeerAddress;
+import net.nosial.socialbox.objects.addresses.PeerAddress;
+import net.nosial.socialbox.objects.cryptography.TypedKey;
 
 public class KeyChangedException extends CryptographyException
 {
