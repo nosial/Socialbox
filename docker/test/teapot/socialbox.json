@@ -23,6 +23,10 @@
         }
     },
     "limits": {
-        "replay_window": 4096
+        "replay_window": 4096,
+        "files_chunk_size": 65536
+    },
+    "inbox": {
+        "delivery_interval": 1000
     }
 }
