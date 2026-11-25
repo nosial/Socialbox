@@ -31,6 +31,18 @@ public class SocialboxException extends RuntimeException
     }
 
     /**
+     * Creates a new exception with structured data.
+     *
+     * @param error The standard error.
+     * @param message The error message.
+     * @param data Structured data describing the error.
+     */
+    public SocialboxException(StandardError error, String message, Object data)
+    {
+        this(error, message, data, null);
+    }
+
+    /**
      * Creates a new exception with structured data and a cause.
      *
      * @param error The standard error.
