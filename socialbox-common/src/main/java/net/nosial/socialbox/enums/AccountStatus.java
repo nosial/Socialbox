@@ -1,6 +1,8 @@
 package net.nosial.socialbox.enums;
 
-public enum AccountStatus
+import net.nosial.socialbox.interfaces.NamedEnumInterface;
+
+public enum AccountStatus implements NamedEnumInterface
 {
     /**
      * Registration started but hasn't been completed yet
