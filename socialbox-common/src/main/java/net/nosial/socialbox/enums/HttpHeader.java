@@ -47,7 +47,18 @@ public enum HttpHeader implements NamedEnumInterface
     /**
      * The standard content type header.
      */
-    CONTENT_TYPE("Content-Type");
+    CONTENT_TYPE("Content-Type"),
+
+    /**
+     * The transfer ticket of a data plane request (base64url). Carried in a header, never the path, so it stays out
+     * of access logs.
+     */
+    TICKET("Socialbox-Ticket"),
+
+    /**
+     * The chunk index of a data plane request.
+     */
+    CHUNK("Socialbox-Chunk");
 
     private final String name;
 
