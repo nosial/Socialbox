@@ -1,13 +1,14 @@
 package net.nosial.socialbox.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import net.nosial.socialbox.interfaces.CodedEnumInterface;
 
-public enum StandardError
+public enum StandardError implements CodedEnumInterface
 {
     /**
      * Fallback for codes this implementation does not know.
      */
+    @JsonEnumDefaultValue
     UNKNOWN(-1),
 
 
@@ -185,17 +186,17 @@ public enum StandardError
     UNSUPPORTED_CHALLENGE(-3006),
 
 
-    // -4000 Range, device related errors
+    // -4000 Range, identity related errors
 
     /**
-     * A device certificate or revocation is malformed or not signed by the account key.
+     * An account log entry is malformed, not signed by the account key or does not follow the log.
      */
-    INVALID_CERTIFICATE(-4000),
+    ACCOUNT_LOG_INVALID(-4000),
 
     /**
-     * The device is revoked, expired or unknown.
+     * The session's signing key is revoked, expired or not in the account log.
      */
-    DEVICE_NOT_ACTIVE(-4001),
+    SESSION_NOT_ACTIVE(-4001),
 
     /**
      * A standing statement is invalid, expired or not ACTIVE.
@@ -203,9 +204,14 @@ public enum StandardError
     STANDING_INVALID(-4002),
 
     /**
-     * The account reached its maximum number of devices.
+     * The account reached its maximum number of sessions.
      */
-    DEVICE_LIMIT_REACHED(-4003),
+    SESSION_LIMIT_REACHED(-4003),
+
+    /**
+     * An account log does not extend a head pinned before: the server rewrote the account's history.
+     */
+    ACCOUNT_LOG_FORKED(-4004),
 
 
     // -5000 Range, Peer related errors
@@ -233,7 +239,20 @@ public enum StandardError
     /**
      * The peer has not completed its registration.
      */
-    NOT_REGISTERED(-5004);
+    NOT_REGISTERED(-5004),
+
+
+    // -6000 Range, sync store errors
+
+    /**
+     * A sync write expected a revision that is not the stored one; {@code data.current} lists the current revisions.
+     */
+    SYNC_CONFLICT(-6000),
+
+    /**
+     * The account's sync store is full.
+     */
+    SYNC_QUOTA_EXCEEDED(-6001);
 
     private final int code;
     StandardError(int code)
@@ -246,29 +265,37 @@ public enum StandardError
      *
      * @return The error code.
      */
-    @JsonValue
+    @Override
     public int getCode()
     {
         return this.code;
     }
 
     /**
-     * Returns the error for the given code, or {@link #UNKNOWN} if the code is unknown.
+     * Returns the HTTP status the HTTP transport answers with when this error ends a request before or outside the
+     * sealed response, along with the {@code Socialbox-Error} header carrying the code itself.
      *
-     * @param code The numeric error code.
-     * @return The matching error.
+     * @return The HTTP status.
      */
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static StandardError fromCode(int code)
+    public int getHttpStatus()
     {
-        for(StandardError error : values())
+        return switch(this)
         {
-            if(error.code == code)
-            {
-                return error;
-            }
-        }
-
-        return UNKNOWN;
+            case BAD_REQUEST, RPC_INVALID_ARGUMENTS, RPC_BAD_REQUEST, UNSUPPORTED_VERSION, UNSUPPORTED_ALGORITHM, HANDSHAKE_FAILED,
+                 WRONG_DOMAIN, CRYPTOGRAPHIC_ERROR, INVALID_SIGNATURE, ACCOUNT_LOG_INVALID, INVALID_ADDRESS, INCORRECT_ANSWER,
+                 UNSUPPORTED_CHALLENGE -> 400;
+            case UNAUTHORIZED, SESSION_NOT_FOUND, SESSION_EXPIRED, AUTHENTICATION_REQUIRED -> 401;
+            case FORBIDDEN, METHOD_NOT_ALLOWED, REGISTRATION_DISABLED, SESSION_NOT_ACTIVE, STANDING_INVALID, USERNAME_RESERVED,
+                 NOT_REGISTERED -> 403;
+            case NOT_FOUND, RPC_METHOD_NOT_FOUND, PEER_NOT_FOUND, TRANSPORT_DISABLED -> 404;
+            case METHOD_NOT_SUPPORTED_ON_TRANSPORT -> 405;
+            case CONFLICT, REPLAY_DETECTED, ALREADY_AUTHENTICATED, USERNAME_TAKEN, SESSION_LIMIT_REACHED, SYNC_CONFLICT -> 409;
+            case EXPIRED -> 410;
+            case LIMIT_EXCEEDED, SYNC_QUOTA_EXCEEDED -> 422;
+            case RATE_LIMITED -> 429;
+            case RESOLUTION_FAILED, DNS_MISMATCH, ACCOUNT_LOG_FORKED -> 502;
+            case SERVER_UNAVAILABLE -> 503;
+            case UNKNOWN, INTERNAL_SERVER_ERROR -> 500;
+        };
     }
 }
