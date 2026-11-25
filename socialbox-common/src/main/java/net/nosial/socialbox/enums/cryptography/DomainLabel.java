@@ -121,7 +121,12 @@ public enum DomainLabel
     /**
      * The server to client session key.
      */
-    SESSION_SERVER_TO_CLIENT("session-s2c");
+    SESSION_SERVER_TO_CLIENT("session-s2c"),
+
+    /**
+     * The key of a session direction for an epoch of 2^32 sequence numbers past the first.
+     */
+    SESSION_EPOCH("session-epoch");
 
     /**
      * The prefix of every label.
