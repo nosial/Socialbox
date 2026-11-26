@@ -22,8 +22,7 @@ import net.nosial.socialbox.objects.cryptography.TypedKey;
  * @param signer The session's signing key.
  * @param signature The signature.
  */
-public record Heartbeat(PeerAddress address, TypedKey signingKey, String label, long lastActive, long logSeq, byte[] logHash,
-                        TypedKey signer, byte[] signature) implements SignedInterface
+public record Heartbeat(PeerAddress address, TypedKey signingKey, String label, long lastActive, long logSeq, byte[] logHash, TypedKey signer, byte[] signature) implements SignedInterface
 {
     /**
      * The maximum length of a session label.
