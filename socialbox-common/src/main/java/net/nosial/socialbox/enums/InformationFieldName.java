@@ -48,12 +48,29 @@ public enum InformationFieldName implements NamedEnumInterface
     /**
      * A website URL.
      */
-    URL(PrivacyState.PUBLIC);
+    URL(PrivacyState.PUBLIC),
+
+    /**
+     * The presence the user shows, one of {@link PresenceStatus} by name ({@code ONLINE}, {@code OFFLINE}, {@code AWAY},
+     * {@code BUSY}). Set by the user's clients; the server only checks the value.
+     */
+    STATUS(PrivacyState.PUBLIC),
+
+    /**
+     * When the user was last seen, in milliseconds since the epoch, as the user's clients choose to publish it; never
+     * in the future (beyond the clock skew).
+     */
+    LAST_SEEN(PrivacyState.PRIVATE),
+
+    /**
+     * The user's accent color, one of {@link AccentColor} by name.
+     */
+    ACCENT_COLOR(PrivacyState.PUBLIC);
 
     /**
      * The maximum length of any information field value.
      */
-    public static final int MAX_VALUE_LENGTH = 2048;
+    public static final int MAX_VALUE_LENGTH = 8192;
 
 
     private final PrivacyState defaultPrivacy;
@@ -76,7 +93,7 @@ public enum InformationFieldName implements NamedEnumInterface
     /**
      * Returns the session flag that requires this field to be set during registration.
      *
-     * @return The registration flag.
+     * @return The registration flag, null for fields registration never requires.
      */
     public SessionFlag getRegistrationFlag()
     {
@@ -91,6 +108,7 @@ public enum InformationFieldName implements NamedEnumInterface
             case PHONE_NUMBER -> SessionFlag.SET_PHONE;
             case BIRTHDAY -> SessionFlag.SET_BIRTHDAY;
             case URL -> SessionFlag.SET_URL;
+            case STATUS, LAST_SEEN, ACCENT_COLOR -> null;
         };
     }
 
@@ -115,6 +133,24 @@ public enum InformationFieldName implements NamedEnumInterface
             case PHONE_NUMBER -> Validate.telephoneNumber(value);
             case BIRTHDAY -> Validate.pastDate(value);
             case URL, DISPLAY_PICTURE -> Validate.httpUrl(value);
+            case STATUS -> NamedEnumInterface.isName(PresenceStatus.class, value);
+            case ACCENT_COLOR -> NamedEnumInterface.isName(AccentColor.class, value);
+            case LAST_SEEN -> isPastTimestamp(value);
         };
+    }
+
+    /**
+     * Returns whether a value is a time in milliseconds since the epoch, not in the future beyond the default clock
+     * skew.
+     */
+    private static boolean isPastTimestamp(String value)
+    {
+        if(value.length() > 15 || !value.chars().allMatch(Character::isDigit))
+        {
+            return false;
+        }
+
+        long time = Long.parseLong(value);
+        return time <= System.currentTimeMillis() + ProtocolLimit.MAX_CLOCK_SKEW.getDefault();
     }
 }
