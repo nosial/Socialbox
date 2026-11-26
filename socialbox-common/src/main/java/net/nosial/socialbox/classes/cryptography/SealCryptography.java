@@ -9,11 +9,11 @@ import net.nosial.socialbox.objects.cryptography.KeyExchangeKeyPair;
 import net.nosial.socialbox.objects.cryptography.SealedKey;
 import net.nosial.socialbox.objects.cryptography.TypedKey;
 
-public final class SealCrypto
+public final class SealCryptography
 {
     private static final byte[] ZERO_NONCE = new byte[Cryptography.NONCE_LENGTH];
 
-    private SealCrypto()
+    private SealCryptography()
     {
     }
 
@@ -78,7 +78,6 @@ public final class SealCrypto
     private static byte[] wrappingKey(DomainLabel label, byte[] context, PeerAddress recipient, TypedKey ephemeralKey, TypedKey encryptionKey,
                                       byte[] secret)
     {
-        return Cryptography.deriveKey(label, new LpWriter().lp(context).str(recipient.toString()).key(ephemeralKey).key(encryptionKey).toByteArray(),
-                secret);
+        return Cryptography.deriveKey(label, new LpWriter().lp(context).str(recipient.toString()).key(ephemeralKey).key(encryptionKey).toByteArray(), secret);
     }
 }
