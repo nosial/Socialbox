@@ -12,6 +12,7 @@ import net.nosial.socialbox.objects.cryptography.SealedKey;
 import net.nosial.socialbox.objects.cryptography.SigningKeyPair;
 import net.nosial.socialbox.objects.cryptography.TypedKey;
 import net.nosial.socialbox.objects.sync.KeyBox;
+import net.nosial.socialbox.objects.sync.RootLink;
 import net.nosial.socialbox.objects.sync.SyncEntry;
 
 import java.math.BigInteger;
@@ -21,30 +22,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public final class SyncCrypto
+public final class SyncCryptography
 {
-    /**
-     * The length of a root secret.
-     */
     public static final int ROOT_SECRET_LENGTH = 32;
-
-    /**
-     * The smallest padded plaintext size.
-     */
     public static final int MIN_BUCKET = 256;
-
-    /**
-     * The bytes sealing adds to a padded plaintext: the nonce and the tag.
-     */
     public static final int SEAL_OVERHEAD = Cryptography.NONCE_LENGTH + 16;
-
-    /**
-     * The length of a record identifier.
-     */
     public static final int RECORD_ID_LENGTH = 32;
     private static final BigInteger DIGEST_MODULUS = BigInteger.ONE.shiftLeft(256);
 
-    private SyncCrypto()
+    private SyncCryptography()
     {
     }
 
@@ -80,7 +66,7 @@ public final class SyncCrypto
      * @param rootSecret The generation's root secret.
      * @return The key pair.
      */
-    public static KeyExchangeKeyPair encryptionKeyPair(PeerAddress address, int generation, byte[] rootSecret)
+    public static KeyExchangeKeyPair encryptionKeyPair(PeerAddress address, long generation, byte[] rootSecret)
     {
         return Cryptography.keyExchangeKeyPairFromPrivate(Cryptography.deriveKey(DomainLabel.ENCRYPTION_KEY,
                 new LpWriter().str(address.toString()).integer(generation).toByteArray(), rootSecret));
@@ -94,7 +80,7 @@ public final class SyncCrypto
      * @param rootSecret The generation's root secret.
      * @return The 32 byte key.
      */
-    public static byte[] syncKey(PeerAddress address, int generation, byte[] rootSecret)
+    public static byte[] syncKey(PeerAddress address, long generation, byte[] rootSecret)
     {
         return Cryptography.deriveKey(DomainLabel.SYNC_KEY, new LpWriter().str(address.toString()).integer(generation).toByteArray(), rootSecret);
     }
@@ -206,7 +192,7 @@ public final class SyncCrypto
      * @param entry The plaintext entry.
      * @return The sealed value.
      */
-    public static byte[] sealRecord(byte[] syncKey, PeerAddress address, byte[] recordId, long revision, int generation, SyncEntry entry)
+    public static byte[] sealRecord(byte[] syncKey, PeerAddress address, byte[] recordId, long revision, long generation, SyncEntry entry)
     {
         byte[] plaintext = new LpWriter().str(entry.collection()).str(entry.name()).lp(entry.value()).toByteArray();
         return Cryptography.seal(syncKey, pad(plaintext), recordAad(address, recordId, revision, generation));
@@ -224,7 +210,7 @@ public final class SyncCrypto
      * @return The plaintext entry.
      * @throws CryptographyException If the value does not open or is malformed.
      */
-    public static SyncEntry openRecord(byte[] syncKey, PeerAddress address, byte[] recordId, long revision, int generation, byte[] sealed)
+    public static SyncEntry openRecord(byte[] syncKey, PeerAddress address, byte[] recordId, long revision, long generation, byte[] sealed)
     {
         byte[] plaintext = unpad(Cryptography.unseal(syncKey, sealed, recordAad(address, recordId, revision, generation)));
         try
@@ -248,7 +234,7 @@ public final class SyncCrypto
      * Builds the additional data that binds a value to its account, record, revision and generation, so the server
      * cannot move, replay or relabel it.
      */
-    private static byte[] recordAad(PeerAddress address, byte[] recordId, long revision, int generation)
+    private static byte[] recordAad(PeerAddress address, byte[] recordId, long revision, long generation)
     {
         return LpWriter.label(DomainLabel.SYNC_RECORD).str(address.toString()).lp(recordId).integer(revision).integer(generation).toByteArray();
     }
@@ -305,66 +291,65 @@ public final class SyncCrypto
     }
 
     /**
-     * Returns the exact length of the sealed bytes of a key box of a generation; servers refuse boxes of any other
-     * length.
+     * The exact length of the sealed bytes of every key box: {@code int(g) || lp(root secret)} and the tag. Boxes carry
+     * only the newest root secret, so their size does not grow with the generations.
+     */
+    public static final int KEY_BOX_LENGTH = 12 + 4 + ROOT_SECRET_LENGTH + 16;
+
+    /**
+     * Returns the exact length of the sealed bytes of a key box; servers refuse boxes of any other length.
      *
-     * @param generation The newest generation in the box.
+     * @param generation The generation in the box.
      * @return The length of {@link SealedKey#wrappedKey()}.
      */
-    public static int keyBoxLength(int generation)
+    public static int keyBoxLength(long generation)
     {
-        // int(g) is 12 bytes, each lp(secret) is 36 bytes, plus the 16 byte tag
-        return 12 + generation * (4 + ROOT_SECRET_LENGTH) + 16;
+        return KEY_BOX_LENGTH;
     }
 
     /**
-     * Seals the root secrets of every generation up to the newest to one recipient.
+     * Seals a generation's root secret to one recipient.
      *
      * @param address The account.
      * @param recipient The recipient: a session's signing key, or the account kex key.
      * @param recipientKexKey The key to seal to: the session's kex key, or the account kex key.
-     * @param secrets The root secrets, oldest first; the newest generation is their count.
+     * @param generation The generation.
+     * @param secret Its root secret.
      * @return The key box.
      */
-    public static KeyBox sealKeyBox(PeerAddress address, TypedKey recipient, TypedKey recipientKexKey, List<byte[]> secrets)
+    public static KeyBox sealKeyBox(PeerAddress address, TypedKey recipient, TypedKey recipientKexKey, long generation, byte[] secret)
     {
-        int generation = secrets.size();
-        LpWriter payload = new LpWriter().integer(generation);
-        for(byte[] secret : secrets)
+        if(secret == null || secret.length != ROOT_SECRET_LENGTH)
         {
-            if(secret.length != ROOT_SECRET_LENGTH)
-            {
-                throw new CryptographyException("Root secrets are 32 bytes");
-            }
-
-            payload.lp(secret);
+            throw new CryptographyException("Root secrets are 32 bytes");
         }
 
-        return new KeyBox(recipient, generation, SealCrypto.seal(DomainLabel.ROOT_SECRET, boxContext(generation, recipient), address,
-                recipientKexKey, payload.toByteArray()));
+        byte[] payload = new LpWriter().integer(generation).lp(secret).toByteArray();
+        return new KeyBox(recipient, generation, SealCryptography.seal(DomainLabel.ROOT_SECRET, boxContext(generation, recipient), address,
+                recipientKexKey, payload));
     }
 
     /**
-     * Opens a key box and verifies every secret in it against the account log: the secret of each generation must
-     * derive the encryption key the log lists for it. A box a server made up, or one for another account, fails.
+     * Opens a key box and unwinds the root chain it came with, verifying every secret against the account log: each
+     * generation's secret must derive the encryption key the log lists for it. A box or link a server made up fails.
      *
      * @param state The account log.
-     * @param box The key box.
+     * @param box The key box, with its chain.
      * @param kexKeyPair The recipient's kex key pair.
      * @return The root secrets, oldest first.
-     * @throws CryptographyException If the box does not open or a secret does not match the log.
+     * @throws CryptographyException If the box or a link does not open, or a secret does not match the log.
      */
     public static List<byte[]> openKeyBox(AccountState state, KeyBox box, KeyExchangeKeyPair kexKeyPair)
     {
         if(box == null || box.box() == null || box.generation() < 1 || state.getGeneration(box.generation()) == null ||
-                box.box().wrappedKey() == null || box.box().wrappedKey().length != keyBoxLength(box.generation()) ||
+                box.box().wrappedKey() == null || box.box().wrappedKey().length != KEY_BOX_LENGTH ||
                 !state.getAddress().equals(box.box().recipient()))
         {
             throw new CryptographyException("Malformed key box");
         }
 
-        byte[] payload = SealCrypto.unseal(DomainLabel.ROOT_SECRET, boxContext(box.generation(), box.recipient()), box.box(), kexKeyPair);
-        List<byte[]> secrets = new ArrayList<>();
+        byte[] payload = SealCryptography.unseal(DomainLabel.ROOT_SECRET, boxContext(box.generation(), box.recipient()), box.box(), kexKeyPair);
+        byte[] newest;
         try
         {
             LpReader reader = new LpReader(payload);
@@ -373,11 +358,7 @@ public final class SyncCrypto
                 throw new CryptographyException("Malformed key box");
             }
 
-            for(int i = 0; i < box.generation(); i++)
-            {
-                secrets.add(reader.lp());
-            }
-
+            newest = reader.lp();
             if(reader.hasRemaining())
             {
                 throw new CryptographyException("Malformed key box");
@@ -388,8 +369,71 @@ public final class SyncCrypto
             throw new CryptographyException("Malformed key box", e);
         }
 
-        verifySecrets(state, secrets);
-        return secrets;
+        return unwind(state, box.generation(), newest, box.chain());
+    }
+
+    /**
+     * Seals the previous generation's root secret under the next one: the link a session that starts a generation
+     * uploads with it.
+     *
+     * @param address The account.
+     * @param generation The new generation.
+     * @param secret The new generation's root secret.
+     * @param previous The previous generation's root secret.
+     * @return The link.
+     */
+    public static RootLink sealRootLink(PeerAddress address, long generation, byte[] secret, byte[] previous)
+    {
+        byte[] context = new LpWriter().str(address.toString()).integer(generation).toByteArray();
+        byte[] key = Cryptography.deriveKey(DomainLabel.ROOT_CHAIN, context, secret);
+        return new RootLink(generation, Cryptography.seal(key, previous, LpWriter.label(DomainLabel.ROOT_CHAIN).raw(context).toByteArray()));
+    }
+
+    /**
+     * Unwinds the root chain from a generation's secret down to the first generation, checking every secret against
+     * the account log.
+     *
+     * @param state The account log.
+     * @param generation The newest generation.
+     * @param newest Its root secret.
+     * @param chain The links, in any order.
+     * @return The root secrets, oldest first.
+     * @throws CryptographyException If a link is missing or does not open, or a secret does not match the log.
+     */
+    public static List<byte[]> unwind(AccountState state, long generation, byte[] newest, List<RootLink> chain)
+    {
+        java.util.Map<Long, byte[]> links = new java.util.HashMap<>();
+        for(RootLink link : chain == null ? List.<RootLink>of() : chain)
+        {
+            if(link != null && link.sealed() != null)
+            {
+                links.put(link.generation(), link.sealed());
+            }
+        }
+
+        java.util.LinkedList<byte[]> secrets = new java.util.LinkedList<>();
+        byte[] current = newest;
+        for(long g = generation; g >= 1; g--)
+        {
+            checkSecret(state, g, current);
+            secrets.addFirst(current);
+            if(g == 1)
+            {
+                break;
+            }
+
+            byte[] sealed = links.get(g);
+            if(sealed == null)
+            {
+                throw new CryptographyException(String.format("The root chain misses the link of generation %d", g));
+            }
+
+            byte[] context = new LpWriter().str(state.getAddress().toString()).integer(g).toByteArray();
+            current = Cryptography.unseal(Cryptography.deriveKey(DomainLabel.ROOT_CHAIN, context, current), sealed,
+                    LpWriter.label(DomainLabel.ROOT_CHAIN).raw(context).toByteArray());
+        }
+
+        return new ArrayList<>(secrets);
     }
 
     /**
@@ -403,17 +447,24 @@ public final class SyncCrypto
     {
         for(int i = 0; i < secrets.size(); i++)
         {
-            Generation generation = state.getGeneration(i + 1);
-            byte[] secret = secrets.get(i);
-            if(generation == null || secret == null || secret.length != ROOT_SECRET_LENGTH ||
-                    !encryptionKeyPair(state.getAddress(), i + 1, secret).publicKey().equals(generation.encryptionKey()))
-            {
-                throw new CryptographyException(String.format("The root secret of generation %d does not match the account log", i + 1));
-            }
+            checkSecret(state, i + 1, secrets.get(i));
         }
     }
 
-    private static byte[] boxContext(int generation, TypedKey recipient)
+    /**
+     * Checks one generation's root secret against the account log.
+     */
+    private static void checkSecret(AccountState state, long number, byte[] secret)
+    {
+        Generation generation = state.getGeneration(number);
+        if(generation == null || secret == null || secret.length != ROOT_SECRET_LENGTH ||
+                !encryptionKeyPair(state.getAddress(), number, secret).publicKey().equals(generation.encryptionKey()))
+        {
+            throw new CryptographyException(String.format("The root secret of generation %d does not match the account log", number));
+        }
+    }
+
+    private static byte[] boxContext(long generation, TypedKey recipient)
     {
         return new LpWriter().integer(generation).key(recipient).toByteArray();
     }
