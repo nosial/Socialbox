@@ -75,6 +75,11 @@ public final class LpWriter
      */
     public LpWriter uuid(UUID uuid)
     {
+        if(uuid == null)
+        {
+            return this.lp(new byte[0]);
+        }
+
         ByteBuffer bytes = ByteBuffer.allocate(16);
         bytes.putLong(uuid.getMostSignificantBits());
         bytes.putLong(uuid.getLeastSignificantBits());
