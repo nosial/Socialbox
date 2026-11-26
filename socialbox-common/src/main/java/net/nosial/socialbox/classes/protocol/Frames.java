@@ -1,7 +1,7 @@
 package net.nosial.socialbox.classes.protocol;
 
-import net.nosial.socialbox.enums.ProtocolLimit;
 import net.nosial.socialbox.enums.FrameType;
+import net.nosial.socialbox.enums.ProtocolLimit;
 import net.nosial.socialbox.exceptions.ProtocolException;
 import net.nosial.socialbox.interfaces.CodedEnumInterface;
 
