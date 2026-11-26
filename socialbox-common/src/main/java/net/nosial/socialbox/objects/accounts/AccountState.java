@@ -311,9 +311,9 @@ public final class AccountState
      * @param number The generation number, starting at 1.
      * @return The generation, null if there is no such generation.
      */
-    public Generation getGeneration(int number)
+    public Generation getGeneration(long number)
     {
-        return number < 1 || number > this.generations.size() ? null : this.generations.get(number - 1);
+        return number < 1 || number > this.generations.size() ? null : this.generations.get((int) (number - 1));
     }
 
     /**
